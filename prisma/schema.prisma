@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MeuCardapio {
+  id        String   @id @default(uuid())
+  nome      String
+  preco     Decimal  @db.Decimal(10, 2)
+  categoria String?  // Ex: Bebidas, Salgados
+}
+
+model Competidor {
+  id        String         @id @default(uuid())
+  nome      String
+  cidade    String
+  itens     ItemCompetidor[]
+}
+
+model ItemCompetidor {
+  id           String     @id @default(uuid())
+  nome         String
+  preco        Decimal    @db.Decimal(10, 2)
+  competidorId String
+  competidor   Competidor @relation(fields: [competidorId], references: [id])
+}

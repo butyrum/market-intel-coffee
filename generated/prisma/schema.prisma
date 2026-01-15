@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id    String @id @default(uuid())
+  nome  String
+  email String @unique
+  senha String
+
+  pesquisas PesquisaMercado[]
+
+  @@map("usuarios")
+}
+
+model PesquisaMercado {
+  id     String @id @default(uuid())
+  cidade String
+  estado String
+  status String @default("processando")
+
+  competidores Competidor[]
+
+  usuarioId String
+  usuario   User   @relation(fields: [usuarioId], references: [id])
+
+  criadoEm DateTime @default(now())
+
+  @@map("pesquisas_mercado")
+}
+
+model Competidor {
+  id       String @id @default(uuid())
+  googleId String @unique
+  nome     String
+  nota     Float?
+
+  estilo String?
+
+  itensCardapio ItemCardapio[]
+
+  pesquisaId String
+  pesquisa   PesquisaMercado @relation(fields: [pesquisaId], references: [id])
+
+  @@map("competidores")
+}
+
+model ItemCardapio {
+  id    String @id @default(uuid())
+  nome  String
+  preco Float?
+
+  categoria String?
+
+  competidorId String
+  competidor   Competidor @relation(fields: [competidorId], references: [id])
+
+  @@map("itens_cardapio")
+}

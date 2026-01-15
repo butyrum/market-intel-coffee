@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Market Intelligence Final</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8fafc;
+      }
+      .fade-in {
+        animation: fadeIn 0.5s ease-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      /* Esconde scrollbar da tabela mas permite rolar */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+  </head>
+  <body class="text-gray-800 pb-20">
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+      <div
+        class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center"
+      >
+        <div class="flex items-center gap-3">
+          <div class="bg-blue-600 text-white p-2 rounded-lg shadow-lg">
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              ></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold text-gray-900 leading-tight">
+              Market Intelligence
+            </h1>
+            <p class="text-xs text-gray-500 font-medium">
+              Dashboard Estratégico
+            </p>
+          </div>
+        </div>
+        <div
+          class="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full"
+        >
+          📅 <span id="dataHoje">...</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 fade-in">
+        <div
+          class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center"
+        >
+          <div>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">
+              Concorrentes
+            </p>
+            <p
+              id="totalConcorrentes"
+              class="text-3xl font-bold text-gray-800 mt-1"
+            >
+              -
+            </p>
+          </div>
+          <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">🏢</div>
+        </div>
+
+        <div
+          class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500 flex justify-between items-center"
+        >
+          <div>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">
+              Itens Comparáveis
+            </p>
+            <p
+              id="itensEmComum"
+              class="text-3xl font-bold text-emerald-600 mt-1"
+            >
+              -
+            </p>
+          </div>
+          <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">⚖️</div>
+        </div>
+
+        <div
+          class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center"
+        >
+          <div>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">
+              Total Monitorado
+            </p>
+            <p id="totalItens" class="text-3xl font-bold text-gray-800 mt-1">
+              -
+            </p>
+          </div>
+          <div class="p-3 bg-purple-50 text-purple-600 rounded-lg">📋</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 fade-in">
+        <div class="lg:col-span-2 flex flex-col gap-6">
+          <div
+            id="boxOportunidades"
+            class="bg-amber-50 border border-amber-200 rounded-xl p-5 hidden"
+          >
+            <h3
+              class="text-base font-bold text-amber-900 mb-2 flex items-center gap-2"
+            >
+              ⚠️ GAPs de Mercado
+            </h3>
+            <p class="text-xs text-amber-800 mb-4">
+              Seus concorrentes vendem estes itens e você não (ou estão com
+              nomes diferentes).
+            </p>
+            <div
+              class="bg-white rounded border border-amber-100 overflow-hidden"
+            >
+              <table class="w-full text-left">
+                <tbody
+                  id="listaOportunidades"
+                  class="text-sm text-gray-800 divide-y divide-amber-50"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden min-h-[400px]"
+          >
+            <div class="flex border-b border-gray-200">
+              <button
+                onclick="mudarAba('comparaveis')"
+                id="btnComparaveis"
+                class="flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+              >
+                📊 Comparáveis (Preço)
+              </button>
+              <button
+                onclick="mudarAba('exclusivos')"
+                id="btnExclusivos"
+                class="flex-1 py-3 text-sm font-semibold text-gray-500 hover:bg-gray-50"
+              >
+                ⭐ Seus Exclusivos
+              </button>
+            </div>
+
+            <div id="tabComparaveis" class="block">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                  <thead
+                    class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold"
+                  >
+                    <tr>
+                      <th class="px-6 py-3">Produto</th>
+                      <th class="px-6 py-3">Seu Preço</th>
+                      <th class="px-6 py-3">Mercado</th>
+                      <th class="px-6 py-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="tabelaComparaveis"
+                    class="text-sm divide-y divide-gray-100"
+                  ></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div id="tabExclusivos" class="hidden">
+              <div class="p-4 bg-purple-50 text-purple-800 text-xs mb-2">
+                Estes itens só você tem! Ótimo para marketing de diferenciação.
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                  <thead
+                    class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold"
+                  >
+                    <tr>
+                      <th class="px-6 py-3">Produto Exclusivo</th>
+                      <th class="px-6 py-3">Seu Preço</th>
+                      <th class="px-6 py-3">Categoria</th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="tabelaExclusivos"
+                    class="text-sm divide-y divide-gray-100"
+                  ></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-[500px] sticky top-24 flex flex-col"
+        >
+          <h3 class="font-bold text-gray-700 mb-4">📈 Visão de Mercado</h3>
+          <div class="flex-1 relative w-full h-full">
+            <canvas id="meuGrafico"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const data = new Date();
+      document.getElementById('dataHoje').innerText =
+        data.toLocaleDateString('pt-BR');
+      let graficoInstance = null;
+
+      function mudarAba(aba) {
+        const tabComp = document.getElementById('tabComparaveis');
+        const tabExcl = document.getElementById('tabExclusivos');
+        const btnComp = document.getElementById('btnComparaveis');
+        const btnExcl = document.getElementById('btnExclusivos');
+
+        if (aba === 'comparaveis') {
+          tabComp.classList.remove('hidden');
+          tabExcl.classList.add('hidden');
+          btnComp.className =
+            'flex-1 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50';
+          btnExcl.className =
+            'flex-1 py-3 text-sm font-semibold text-gray-500 hover:bg-gray-50';
+        } else {
+          tabComp.classList.add('hidden');
+          tabExcl.classList.remove('hidden');
+          btnComp.className =
+            'flex-1 py-3 text-sm font-semibold text-gray-500 hover:bg-gray-50';
+          btnExcl.className =
+            'flex-1 py-3 text-sm font-bold text-purple-600 border-b-2 border-purple-600 bg-purple-50';
+        }
+      }
+
+      async function carregarDados() {
+        try {
+          const response = await fetch(
+            'http://localhost:3000/market/dashboard',
+          );
+          const data = await response.json();
+
+          // KPIs
+          document.getElementById('totalConcorrentes').innerText =
+            data.totalConcorrentes;
+          document.getElementById('totalItens').innerText = data.resumo.length;
+          document.getElementById('itensEmComum').innerText = data.itensEmComum;
+
+          // GAPS
+          const listaOportunidades =
+            document.getElementById('listaOportunidades');
+          const boxOportunidades = document.getElementById('boxOportunidades');
+          listaOportunidades.innerHTML = '';
+
+          if (data.oportunidades && data.oportunidades.length > 0) {
+            boxOportunidades.classList.remove('hidden');
+            data.oportunidades.forEach((op) => {
+              listaOportunidades.innerHTML += `
+                            <tr class="hover:bg-amber-100/50">
+                                <td class="px-4 py-3 font-bold text-gray-700">${op.nome}</td>
+                                <td class="px-4 py-3 text-gray-500">R$ ${op.mediaPreco.toFixed(2)}</td>
+                                <td class="px-4 py-3 text-xs text-amber-700 font-bold bg-amber-100 rounded-full w-fit px-2">
+                                    Em ${op.presenteEm}/${op.total} locais
+                                </td>
+                            </tr>`;
+            });
+          } else {
+            boxOportunidades.classList.add('hidden');
+          }
+
+          // TABELAS
+          const tbComparaveis = document.getElementById('tabelaComparaveis');
+          const tbExclusivos = document.getElementById('tabelaExclusivos');
+          tbComparaveis.innerHTML = '';
+          tbExclusivos.innerHTML = '';
+
+          const labels = [];
+          const meusPrecos = [];
+          const mediasMercado = [];
+
+          data.resumo.forEach((item) => {
+            // SEPARA O QUE É COMPARÁVEL DO QUE É EXCLUSIVO
+            if (item.status.includes('EXCLUSIVO')) {
+              tbExclusivos.innerHTML += `
+                            <tr class="hover:bg-purple-50">
+                                <td class="px-6 py-4 font-medium text-gray-700">${item.item}</td>
+                                <td class="px-6 py-4 font-bold">R$ ${item.meuPreco.toFixed(2)}</td>
+                                <td class="px-6 py-4 text-xs text-gray-400">Autoral</td>
+                            </tr>`;
+            } else {
+              // Preenche gráfico só com comparáveis
+              labels.push(item.item);
+              meusPrecos.push(item.meuPreco);
+              mediasMercado.push(item.mediaMercado);
+
+              let badge = item.status.includes('BAIXO')
+                ? '<span class="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700">PREÇO BAIXO</span>'
+                : item.status.includes('ALTO')
+                  ? '<span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700">PREÇO ALTO</span>'
+                  : '<span class="px-2 py-1 rounded text-xs font-bold bg-gray-100 text-gray-600">NA MÉDIA</span>';
+
+              tbComparaveis.innerHTML += `
+                            <tr class="hover:bg-blue-50">
+                                <td class="px-6 py-4 font-medium">${item.item}</td>
+                                <td class="px-6 py-4 font-bold text-blue-900">R$ ${item.meuPreco.toFixed(2)}</td>
+                                <td class="px-6 py-4 text-gray-500">R$ ${item.mediaMercado.toFixed(2)}</td>
+                                <td class="px-6 py-4">${badge}</td>
+                            </tr>`;
+            }
+          });
+
+          atualizarGrafico(labels, meusPrecos, mediasMercado);
+        } catch (error) {
+          console.error(error);
+          alert('Erro ao conectar no Backend.');
+        }
+      }
+
+      function atualizarGrafico(labels, meus, mercado) {
+        const ctx = document.getElementById('meuGrafico').getContext('2d');
+        if (graficoInstance) graficoInstance.destroy();
+
+        graficoInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Você',
+                data: meus,
+                backgroundColor: '#2563eb',
+                borderRadius: 6,
+                barPercentage: 0.7,
+              },
+              {
+                label: 'Mercado',
+                data: mercado,
+                backgroundColor: '#cbd5e1',
+                borderRadius: 6,
+                barPercentage: 0.7,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false, // ISSO PERMITE O GRÁFICO CRESCER
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+              x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+            },
+          },
+        });
+      }
+
+      carregarDados();
+    </script>
+  </body>
+</html>
