@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
-// --- ADICIONAMOS "export" PARA O CONTROLLER CONSEGUIR LER ---
 export interface ItemDto {
   nome: string;
   preco: number | string;
@@ -31,7 +30,6 @@ export interface GapDto {
 export class MarketResearchService {
   constructor(private prisma: PrismaService) {}
 
-  // 1. Salva concorrente
   async salvarConcorrente(data: ConcorrenteDto) {
     return this.prisma.competidor.create({
       data: {
@@ -47,7 +45,6 @@ export class MarketResearchService {
     });
   }
 
-  // 2. Salva seu item
   async salvarMeuItem(data: MeuItemDto) {
     return this.prisma.meuCardapio.create({
       data: {
@@ -58,7 +55,6 @@ export class MarketResearchService {
     });
   }
 
-  // 3. Gera o Dashboard COMPLETO
   async gerarDashboard() {
     const meusItens = await this.prisma.meuCardapio.findMany();
     const concorrentes = await this.prisma.competidor.findMany({
@@ -67,7 +63,6 @@ export class MarketResearchService {
 
     const totalConcorrentes = concorrentes.length;
 
-    // A. Mapear o Mercado
     const todosItensMercado = concorrentes.flatMap((c) => c.itens);
     const mercadoStats: Record<
       string,
@@ -85,8 +80,6 @@ export class MarketResearchService {
       mercadoStats[nomeChave].qtd += 1;
       mercadoStats[nomeChave].precos.push(precoNum);
     });
-
-    // B. Analisar MEUS Itens
     let itensEmComumCount = 0;
 
     const comparativo = meusItens.map((meuItem) => {
@@ -124,7 +117,6 @@ export class MarketResearchService {
       }
     });
 
-    // C. Oportunidades (GAPs)
     const oportunidades: GapDto[] = [];
     const meusNomes = meusItens.map((i) => i.nome.toLowerCase().trim());
 

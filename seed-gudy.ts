@@ -5,50 +5,35 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Semeando Cardápio Gudy (Modo Seguro)...');
 
-  // =======================================================
-  // 1. LIMPEZA SEGURA (Resolve o erro do "prisma.item") 🛡️
-  // =======================================================
-
-  // Primeiro, buscamos quem já existe
   const concorrentesExistentes = await prisma.competidor.findMany();
 
-  // Pedimos para cada concorrente apagar seus próprios itens
   for (const c of concorrentesExistentes) {
     await prisma.competidor.update({
       where: { id: c.id },
-      data: { itens: { deleteMany: {} } }, // Usa a relação que sabemos que existe
+      data: { itens: { deleteMany: {} } },
     });
   }
 
-  // Agora podemos limpar as mesas
   await prisma.competidor.deleteMany({});
   await prisma.meuCardapio.deleteMany({});
 
   console.log('🧹 Limpeza concluída sem erros.');
 
-  // =======================================================
-  // 2. CADASTRO DO SEU CARDÁPIO (Oficial)
-  // =======================================================
-
   const meuMenu = [
-    // --- SALGADOS & BRUNCH (Padronizados) ---
     { nome: 'Misto Quente', preco: 13.0, categoria: 'Salgados' },
     { nome: 'Queijo Quente', preco: 20.0, categoria: 'Salgados' },
     { nome: 'Omelete', preco: 13.0, categoria: 'Brunch' },
     { nome: 'Quiches', preco: 15.0, categoria: 'Salgados' },
 
-    // --- TOASTS COMUNS ---
     { nome: 'Toast Avocado', preco: 22.0, categoria: 'Toasts' },
     { nome: 'Toast Caprese', preco: 20.0, categoria: 'Toasts' },
 
-    // --- SOBREMESAS COMUNS ---
     { nome: 'Waffle', preco: 18.0, categoria: 'Sobremesas' },
     { nome: 'Tiramissu', preco: 20.0, categoria: 'Sobremesas' },
     { nome: 'Brownie', preco: 11.0, categoria: 'Sobremesas' },
     { nome: 'Croissant com Nutella', preco: 25.0, categoria: 'Sobremesas' },
     { nome: 'Cookie Recheado', preco: 10.0, categoria: 'Sobremesas' },
 
-    // --- CAFÉS & BEBIDAS COMUNS ---
     { nome: 'Espresso Curto', preco: 6.0, categoria: 'Cafés' },
     { nome: 'Espresso Longo', preco: 8.0, categoria: 'Cafés' },
     { nome: 'Cappuccino', preco: 14.0, categoria: 'Cafés' },
@@ -59,7 +44,6 @@ async function main() {
     { nome: 'Chocolate Quente', preco: 15.0, categoria: 'Cafés' },
     { nome: 'Vanilla Latte', preco: 14.0, categoria: 'Cafés' },
 
-    // --- BEBIDAS GELADAS COMUNS ---
     { nome: 'Frapês', preco: 18.0, categoria: 'Gelados' },
     { nome: 'Affogato', preco: 12.0, categoria: 'Gelados' },
     { nome: 'Iced Caramel', preco: 16.0, categoria: 'Gelados' },
@@ -69,7 +53,6 @@ async function main() {
     { nome: 'Matcha', preco: 8.0, categoria: 'Chás' },
     { nome: 'Matcha Latte', preco: 12.0, categoria: 'Chás' },
 
-    // --- AUTORAIS & ESPECIAIS (Mantidos originais) ---
     { nome: 'Croissant Carne Bovina', preco: 26.0, categoria: 'Croissants' },
     { nome: 'Croissant Frango', preco: 25.0, categoria: 'Croissants' },
     { nome: 'Croissant 4 Queijos', preco: 22.0, categoria: 'Croissants' },
